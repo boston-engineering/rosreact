@@ -4,7 +4,7 @@ import { DefaultMessageType, subscribe, unsubscribe } from '../../helpers/TopicH
 import { useRos } from '../RosConnection';
 import { SubscriberProps } from './Subscriber';
 
-export type UseSubscriptionProps<TMessage = DefaultMessageType> =
+export type UseSubscriptionProps<TMessage, TFType = never> =
     SubscriberProps<TMessage> & {
         /**
          * Function to determine if messages are the same to cut down on renders. Do not set if you want every message.
@@ -16,11 +16,15 @@ export type UseSubscriptionProps<TMessage = DefaultMessageType> =
             o1: TMessage | null | undefined,
             o2: TMessage | null | undefined,
         ) => boolean | number;
+
+        transformFunc?: (msg: TMessage | null | undefined) => TFType | null;
     };
 
-export function useSubscription<TMessage = DefaultMessageType>(
-    props: UseSubscriptionProps<TMessage>,
-): TMessage | null {
+export function useSubscription<TMessage = DefaultMessageType, TFType = never>(props: UseSubscriptionProps<TMessage, TFType>): TMessage | null;
+export function useSubscription<TMessage, TFType>(props: UseSubscriptionProps<TMessage, TFType>): TFType | null;
+export function useSubscription<TMessage = DefaultMessageType, TFType = unknown>(
+    props: UseSubscriptionProps<TMessage, TFType>,
+) {
     const ros = useRos();
 
     const {
@@ -32,6 +36,7 @@ export function useSubscription<TMessage = DefaultMessageType>(
         queueSize,
         customCallback,
         compareFunc,
+        transformFunc,
     } = props;
 
     const [message, setMessage] = useState<TMessage | null>(
@@ -89,6 +94,10 @@ export function useSubscription<TMessage = DefaultMessageType>(
         customCallback,
         compareFunc,
     ]);
+
+    if(transformFunc) {
+        return transformFunc(message);
+    }
 
     return message;
 }
