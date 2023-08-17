@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { DefaultMessageType, subscribe, unsubscribe } from '../../helpers/TopicHelpers';
+import {DefaultMessageType, subscribe, unsubscribe} from '../../helpers/TopicHelpers';
 import { useRos } from '../RosConnection';
 import { SubscriberProps } from './Subscriber';
 
-export type UseSubscriptionProps<TMessage, TFType = never> =
+export type TransformConstraint = object | string | number | boolean;
+
+export type UseSubscriptionProps<TMessage, TFType extends TransformConstraint = never> =
     SubscriberProps<TMessage> & {
         /**
          * Function to determine if messages are the same to cut down on renders. Do not set if you want every message.
@@ -17,12 +19,12 @@ export type UseSubscriptionProps<TMessage, TFType = never> =
             o2: TMessage | null | undefined,
         ) => boolean | number;
 
-        transformFunc?: (msg: TMessage | null | undefined) => TFType | null;
+        transformFunc?: (msg: TMessage | null | undefined) => TFType;
     };
 
-export function useSubscription<TMessage = DefaultMessageType, TFType = never>(props: UseSubscriptionProps<TMessage, TFType>): TMessage | null;
-export function useSubscription<TMessage, TFType>(props: UseSubscriptionProps<TMessage, TFType>): TFType | null;
-export function useSubscription<TMessage = DefaultMessageType, TFType = unknown>(
+export function useSubscription<TMessage = DefaultMessageType>(props: UseSubscriptionProps<TMessage>): TMessage | null;
+export function useSubscription<TMessage, TFType extends TransformConstraint>(props: UseSubscriptionProps<TMessage, TFType>): TFType | null;
+export function useSubscription<TMessage, TFType extends TransformConstraint>(
     props: UseSubscriptionProps<TMessage, TFType>,
 ) {
     const ros = useRos();
