@@ -6,7 +6,11 @@ import { SubscriberProps } from './Subscriber';
 
 export type TransformConstraint = object | string | number | boolean;
 
-export type UseSubscriptionProps<TMessage, TFType extends TransformConstraint = never> =
+type TransformFuncMixin<TMessage, TFType> = {
+    transformFunc?: (msg: TMessage | null | undefined) => TFType | null;
+};
+
+export type UseSubscriptionProps<TMessage> =
     SubscriberProps<TMessage> & {
         /**
          * Function to determine if messages are the same to cut down on renders. Do not set if you want every message.
@@ -18,14 +22,15 @@ export type UseSubscriptionProps<TMessage, TFType extends TransformConstraint = 
             o1: TMessage | null | undefined,
             o2: TMessage | null | undefined,
         ) => boolean | number;
-
-        transformFunc?: (msg: TMessage | null | undefined) => TFType;
     };
 
+export type TransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage> & Required<TransformFuncMixin<TMessage, TFType>>;
+export type OptionalTransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage> & TransformFuncMixin<TMessage, TFType>;
+
+export function useSubscription<TMessage, TFType extends TransformConstraint>(props: TransformedUseSubscriptionProps<TMessage, TFType>): TFType | null;
 export function useSubscription<TMessage = DefaultMessageType>(props: UseSubscriptionProps<TMessage>): TMessage | null;
-export function useSubscription<TMessage, TFType extends TransformConstraint>(props: UseSubscriptionProps<TMessage, TFType>): TFType | null;
 export function useSubscription<TMessage, TFType extends TransformConstraint>(
-    props: UseSubscriptionProps<TMessage, TFType>,
+    props: OptionalTransformedUseSubscriptionProps<TMessage, TFType>,
 ) {
     const ros = useRos();
 
