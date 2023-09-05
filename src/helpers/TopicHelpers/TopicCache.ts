@@ -16,8 +16,14 @@ function tryUnregister<TMessage>(topic: Topic<TMessage>) {
             return;
         }
         const manager = sharedTopics.get(topic.settingsHash);
+        console.log(`Trying to clean up topic ${topic.settingsHash}`, {
+            hasListeners: topic.hasListeners(),
+            isAdvertised: topic.isAdvertised,
+            numPublishers: manager?.numPublishers,
+        });
 
         if (manager !== undefined && manager.canBeRemoved()) {
+            console.log(`Cleaned up ${topic.settingsHash}`);
             sharedTopics.delete(topic.settingsHash);
         }
     }, TOPIC_REMOVE_TIMEOUT);
@@ -111,6 +117,7 @@ export function getCachedTopic<TMessage = DefaultMessageType>(
             queue_size: settings.queueSize,
         });
         manager.topic.settingsHash = hashStr;
+        console.log(`Creating new manager with hash ${hashStr}`);
         sharedTopics.set(hashStr, manager);
     }
 
@@ -127,6 +134,7 @@ export function subscribe<TMessage = DefaultMessageType>(
     callback: (message: TMessage) => void,
 ): Topic<TMessage> {
     const topic = getCachedTopic<TMessage>(ros, settings);
+    console.log(`Subscribing to ${settings.topic} with hash ${topic.settingsHash}`);
     topic.subscribe(callback);
     return topic;
 }

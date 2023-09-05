@@ -45,8 +45,10 @@ export function usePublisher<TMessage extends object = DefaultMessageType>(
         let intervalStarted = false;
 
         if (!message) {
+            console.log('Ending publish because message is unset');
             return;
         }
+        console.log(`Starting publish effect`);
 
         if (autoRepeat) {
             const rate = topicSettings.throttleRate ?? 1;
@@ -74,8 +76,10 @@ export function usePublisher<TMessage extends object = DefaultMessageType>(
 
     useEffect(() => {
         const id = hookId.current;
+        console.log(`Mounted publisher ${publisher.settingsHash} at hook ${id}`);
         advertise(publisher, id);
         return () => {
+            console.log(`Unmounting publisher ${publisher.settingsHash} at hook ${id}`);
             unadvertise(publisher, id);
         };
     }, [publisher]);

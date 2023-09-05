@@ -11,10 +11,18 @@ export class ManagedTopic<T> {
     }
 
     addPublisher = (uuid: string) => {
+        console.log(`Adding UUID ${uuid} to ${this.topic.settingsHash}`, {
+            publishers: this.publishers,
+            advertised: this.topic.isAdvertised,
+        });
         this.publishers.add(uuid);
     };
 
     removePublisher = (uuid: string) => {
+        console.log(`Removing UUID ${uuid} from ${this.topic.settingsHash}`, {
+            publishers: this.publishers,
+            advertised: this.topic.isAdvertised,
+        });
         this.publishers.delete(uuid);
         if (this.publishers.size === 0 && this.topic.isAdvertised) {
             this.topic.unadvertise();

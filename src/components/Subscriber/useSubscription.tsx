@@ -75,6 +75,7 @@ export function useSubscription<TMessage = DefaultMessageType>(
         );
 
         return () => {
+            console.log(`Unsubscribing ${topic}`);
             unsubscribe(subscription, messageCallback);
         };
     }, [
