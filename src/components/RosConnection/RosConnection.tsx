@@ -14,11 +14,12 @@ interface RosConnectionProps {
     authenticate?: boolean;
     user?: string;
     password?: string;
+    onConnectionChange?: (connected: boolean) => void;
 }
 
 /**** Component Definition ****/
 
-const DefaultRosProps: Required<RosConnectionProps> = {
+const DefaultRosProps: Required<Omit<RosConnectionProps, 'onConnectionChange'>> = {
     url: 'ws://127.0.0.1:9090',
     autoConnect: false,
     autoConnectTimeout: 1000,
@@ -46,6 +47,7 @@ export const RosConnection = ({
             props.authenticate,
             props.user,
             props.password,
+            props.onConnectionChange,
         );
         connect(curRos, props.url, props.authenticate, props.user, props.password);
         return () => {
@@ -55,9 +57,10 @@ export const RosConnection = ({
         props.authenticate,
         props.autoConnect,
         props.autoConnectTimeout,
-        props.password,
         props.url,
         props.user,
+        props.onConnectionChange,
+        props.password,
     ]);
 
     return (
@@ -75,6 +78,7 @@ RosConnection.propTypes = {
     authenticate: PropTypes.bool,
     user: PropTypes.string,
     password: PropTypes.string,
+    onConnectionChange: PropTypes.func,
 };
 
 /**** Utility Functions ****/
@@ -122,17 +126,27 @@ export function setupConnectionCallbacks(
     authenticate = DefaultRosProps.authenticate,
     user = DefaultRosProps.user,
     password = DefaultRosProps.password,
+    onConnectionChange?: RosConnectionProps['onConnectionChange'],
 ): void {
     const connectCB = () => {
         console.log(`Connected to instance ${ros.uid}`);
+        if (onConnectionChange) {
+            onConnectionChange(true);
+        }
     };
 
     const closeCB = () => {
         console.log('Disconnected');
+        if (onConnectionChange) {
+            onConnectionChange(false);
+        }
     };
 
     const errorCB = () => {
         console.log('Connection error');
+        if (onConnectionChange) {
+            onConnectionChange(false);
+        }
 
         // Attempt to reconnect
         if (autoConnect) {
