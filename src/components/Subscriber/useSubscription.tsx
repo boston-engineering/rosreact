@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import {DefaultMessageType, subscribe, unsubscribe} from '../../helpers/TopicHelpers';
+import { DefaultMessageType, subscribe, unsubscribe } from '../../helpers/TopicHelpers';
 import { useRos } from '../RosConnection';
 import { SubscriberProps } from './Subscriber';
 
@@ -10,25 +10,39 @@ type TransformFuncMixin<TMessage, TFType> = {
     transformFunc?: (msg: TMessage | null | undefined) => TFType | null;
 };
 
-export type UseSubscriptionProps<TMessage, CBRetType = TMessage> =
-    SubscriberProps<TMessage, CBRetType> & {
-        /**
-         * Function to determine if messages are the same to cut down on renders. Do not set if you want every message.
-         * @param o1 The existing message
-         * @param o2 The new incoming message
-         * @return Standard comparison result, `true` or `0` if equal, `false` or non-zero otherwise.
-         */
-        compareFunc?: (
-            o1: TMessage | null | undefined,
-            o2: TMessage | null | undefined,
-        ) => boolean | number;
-    };
+export type UseSubscriptionProps<TMessage, CBRetType = TMessage> = SubscriberProps<
+    TMessage,
+    CBRetType
+> & {
+    /**
+     * Function to determine if messages are the same to cut down on renders. Do not set if you want every message.
+     * @param o1 The existing message
+     * @param o2 The new incoming message
+     * @return Standard comparison result, `true` or `0` if equal, `false` or non-zero otherwise.
+     */
+    compareFunc?: (
+        o1: TMessage | null | undefined,
+        o2: TMessage | null | undefined,
+    ) => boolean | number;
+};
 
-export type TransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage, TFType> & Required<TransformFuncMixin<TMessage, TFType>>;
-export type OptionalTransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage, TMessage | TFType> & TransformFuncMixin<TMessage, TFType>;
+export type TransformedUseSubscriptionProps<
+    TMessage,
+    TFType extends TransformConstraint,
+> = UseSubscriptionProps<TMessage, TFType> &
+    Required<TransformFuncMixin<TMessage, TFType>>;
+export type OptionalTransformedUseSubscriptionProps<
+    TMessage,
+    TFType extends TransformConstraint,
+> = UseSubscriptionProps<TMessage, TMessage | TFType> &
+    TransformFuncMixin<TMessage, TFType>;
 
-export function useSubscription<TMessage, TFType extends TransformConstraint>(props: TransformedUseSubscriptionProps<TMessage, TFType>): TFType | null;
-export function useSubscription<TMessage = DefaultMessageType>(props: UseSubscriptionProps<TMessage>): TMessage | null;
+export function useSubscription<TMessage, TFType extends TransformConstraint>(
+    props: TransformedUseSubscriptionProps<TMessage, TFType>,
+): TFType | null;
+export function useSubscription<TMessage = DefaultMessageType>(
+    props: UseSubscriptionProps<TMessage>,
+): TMessage | null;
 export function useSubscription<TMessage, TFType extends TransformConstraint>(
     props: OptionalTransformedUseSubscriptionProps<TMessage, TFType>,
 ) {
@@ -67,9 +81,9 @@ export function useSubscription<TMessage, TFType extends TransformConstraint>(
             }
 
             if (customCallback) {
-                if(transformFunc) {
+                if (transformFunc) {
                     const transformed = transformFunc(newMsg);
-                    if(transformed !== null) {
+                    if (transformed !== null) {
                         // console.log('Running transformed callback');
                         customCallback(transformed);
                     }
@@ -110,7 +124,7 @@ export function useSubscription<TMessage, TFType extends TransformConstraint>(
         compareFunc,
     ]);
 
-    if(transformFunc) {
+    if (transformFunc) {
         return transformFunc(message);
     }
 

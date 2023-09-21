@@ -2,9 +2,14 @@ import PropTypes from 'prop-types';
 import React, { createContext, useEffect, useState } from 'react';
 import { Message } from 'roslib';
 
+import {
+    DefaultMessageType,
+    subscribe,
+    TopicSettings,
+    unsubscribe,
+} from '../../helpers/TopicHelpers';
 import { useCheckedContext } from '../common';
 import { useRos } from '../RosConnection';
-import { DefaultMessageType, subscribe, TopicSettings, unsubscribe } from '../../helpers/TopicHelpers';
 
 const MessageContext = createContext(new Message({}));
 
@@ -13,7 +18,16 @@ export const Subscriber = (props: SubscriberComponentProps) => {
 
     const [message, setMessage] = useState(new Message(props.messageInitialValue));
 
-    const {topic, messageType, throttleRate, latch, queueLength, queueSize, customCallback, ...other} = props;
+    const {
+        topic,
+        messageType,
+        throttleRate,
+        latch,
+        queueLength,
+        queueSize,
+        customCallback,
+        ...other
+    } = props;
 
     const topicSettings: TopicSettings = {
         topic,
@@ -21,20 +35,20 @@ export const Subscriber = (props: SubscriberComponentProps) => {
         throttleRate,
         latch,
         queueLength,
-        queueSize
+        queueSize,
     };
 
-    const callback = customCallback || ((newMessage: Message) => {setMessage(newMessage)});
+    const callback =
+        customCallback ||
+        ((newMessage: Message) => {
+            setMessage(newMessage);
+        });
 
     useEffect(() => {
-        const topic = subscribe(
-            ros,
-            topicSettings,
-            callback,
-        );
+        const topic = subscribe(ros, topicSettings, callback);
         return () => {
             unsubscribe(topic, callback);
-        }
+        };
     }, []);
 
     return (
@@ -42,14 +56,17 @@ export const Subscriber = (props: SubscriberComponentProps) => {
             {props.children}
         </MessageContext.Provider>
     );
-}
+};
 
-export interface SubscriberProps<TMessage = DefaultMessageType, CBRetType = TMessage> extends TopicSettings {
+export interface SubscriberProps<TMessage = DefaultMessageType, CBRetType = TMessage>
+    extends TopicSettings {
     customCallback?: (msg: CBRetType) => void;
     messageInitialValue?: TMessage;
 }
 
-type SubscriberComponentProps<TMessage = DefaultMessageType> = React.PropsWithChildren<SubscriberProps<TMessage>>;
+type SubscriberComponentProps<TMessage = DefaultMessageType> = React.PropsWithChildren<
+    SubscriberProps<TMessage>
+>;
 
 Subscriber.propTypes = {
     children: PropTypes.node,
@@ -60,7 +77,7 @@ Subscriber.propTypes = {
     queueLength: PropTypes.number,
     queueSize: PropTypes.number,
     messageInitialValue: PropTypes.object,
-}
+};
 
 export function useMsg(): Message {
     return useCheckedContext(MessageContext);
