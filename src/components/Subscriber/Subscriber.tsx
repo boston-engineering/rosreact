@@ -44,8 +44,8 @@ export const Subscriber = (props: SubscriberComponentProps) => {
     );
 }
 
-export interface SubscriberProps<TMessage = DefaultMessageType> extends TopicSettings {
-    customCallback?: (msg: TMessage) => void;
+export interface SubscriberProps<TMessage = DefaultMessageType, CBRetType = TMessage> extends TopicSettings {
+    customCallback?: (msg: CBRetType) => void;
     messageInitialValue?: TMessage;
 }
 

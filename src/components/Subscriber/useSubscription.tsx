@@ -10,8 +10,8 @@ type TransformFuncMixin<TMessage, TFType> = {
     transformFunc?: (msg: TMessage | null | undefined) => TFType | null;
 };
 
-export type UseSubscriptionProps<TMessage> =
-    SubscriberProps<TMessage> & {
+export type UseSubscriptionProps<TMessage, CBRetType = TMessage> =
+    SubscriberProps<TMessage, CBRetType> & {
         /**
          * Function to determine if messages are the same to cut down on renders. Do not set if you want every message.
          * @param o1 The existing message
@@ -24,8 +24,8 @@ export type UseSubscriptionProps<TMessage> =
         ) => boolean | number;
     };
 
-export type TransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage> & Required<TransformFuncMixin<TMessage, TFType>>;
-export type OptionalTransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage> & TransformFuncMixin<TMessage, TFType>;
+export type TransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage, TFType> & Required<TransformFuncMixin<TMessage, TFType>>;
+export type OptionalTransformedUseSubscriptionProps<TMessage, TFType extends TransformConstraint> = UseSubscriptionProps<TMessage, TMessage | TFType> & TransformFuncMixin<TMessage, TFType>;
 
 export function useSubscription<TMessage, TFType extends TransformConstraint>(props: TransformedUseSubscriptionProps<TMessage, TFType>): TFType | null;
 export function useSubscription<TMessage = DefaultMessageType>(props: UseSubscriptionProps<TMessage>): TMessage | null;
@@ -67,7 +67,15 @@ export function useSubscription<TMessage, TFType extends TransformConstraint>(
             }
 
             if (customCallback) {
-                customCallback(newMsg);
+                if(transformFunc) {
+                    const transformed = transformFunc(newMsg);
+                    if(transformed !== null) {
+                        // console.log('Running transformed callback');
+                        customCallback(transformed);
+                    }
+                } else {
+                    customCallback(newMsg);
+                }
             }
 
             updateMessage(newMsg);
