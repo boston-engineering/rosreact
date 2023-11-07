@@ -18,6 +18,11 @@ export type PublisherMsgProp<TMessage extends object> = TMessage | (() => TMessa
 
 export interface PublisherProps extends TopicSettings {
     autoRepeat?: boolean;
+    /**
+     * Whether to immediately publish the initial message, if one is passed in.
+     * Default true
+     */
+    publishInitial?: boolean;
 }
 
 function getMessage<TMessage extends object>(
@@ -36,7 +41,7 @@ export function usePublisher<TMessage extends object = DefaultMessageType>(
     const hookId = useRef(uuidv4());
     const ros = useRos();
 
-    const { autoRepeat, ...topicSettings } = props;
+    const { autoRepeat, publishInitial, ...topicSettings } = props;
 
     const publisher = getCachedTopic<TMessage>(ros, topicSettings);
 
@@ -58,7 +63,9 @@ export function usePublisher<TMessage extends object = DefaultMessageType>(
                 intervalStarted = true;
             }, period);
         } else {
-            publisher.publish(getMessage(message));
+            if (publishInitial || publishInitial === undefined) {
+                publisher.publish(getMessage(message));
+            }
         }
 
         return () => {
@@ -72,7 +79,7 @@ export function usePublisher<TMessage extends object = DefaultMessageType>(
                 publisher.publish(getMessage(message));
             }
         };
-    }, [autoRepeat, message, publisher, topicSettings.throttleRate]);
+    }, [autoRepeat, message, publishInitial, publisher, topicSettings.throttleRate]);
 
     useEffect(() => {
         const id = hookId.current;
